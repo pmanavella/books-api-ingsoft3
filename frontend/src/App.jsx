@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 // Base de URL: usa VITE_API_URL en QA/PROD y localhost en desarrollo local
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 const API_URL = `${API_BASE}/api/books`;
 
 function App() {
