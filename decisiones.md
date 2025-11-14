@@ -64,43 +64,35 @@ Todo el pipeline y las plataformas se configuraron correctamente y funcionan com
 
 ## 5. Error  al cargar libros en frontend QA y PROD
 
-A pesar de que backend funciona correctamente, el frontend sigue intentando llamar a: http://localhost:4000/api/books
+A pesar de que backend funcionaba correctamente, el frontend seguia intentando llamar a: http://localhost:4000/api/books
 - Tal como se ve en la consola del navegador: 
     - Fetch API cannot load http://localhost:4000/api/books
     - Blocked due to access control checks
 - Causa confirmada
-    - El build de Vite en Render no está recibiendo el valor de la variable VITE_API_URL durante la compilación, por lo que el frontend usa el fallback "http://localhost:4000".
+    - El build de Vite en Render no estaba recibiendo el valor de la variable VITE_API_URL durante la compilación, por lo que el frontend usa el fallback "http://localhost:4000".
 - Esto se debe a que:
     - Vite solo lee variables en tiempo de build,
     - Render inyecta las variables en tiempo de ejecución,
     - Por lo tanto el valor nunca llega a import.meta.env.VITE_API_URL dentro del bundle final.
-
-- Resultado:
-    - backend en QA/PROD funciona
-    - frontend en QA/PROD se despliega
-    - pero el bundle final sigue “hardcodeado” a localhost:4000, rompiendo la carga de libros.
+    - El frontend no tomaba VITE_API_URL durante el build y siempre apuntaba a localhost:4000.
 
 ## 6. Estado final del error
 
-- Qué se intentó:
-    - Actualizar App.jsx
-    - Regenerar builds en Render
-    - Revisar variables en QA/PROD
-    - Recompilar desde CI/CD
-    - Ver logs en navegador y Render
+- Solución implementada
+    - Se eliminaron todas las variables del frontend dentro de Render. 
+    - Se re-agregó únicamente VITE_API_URL en el dashboard correspondiente (QA y PROD)
+    - Se hizo un nuevo deploy completo desde el pipeline
+    - Se verificó con “View Logs” que el valor de VITE_API_URL SÍ estaba presente durante la build.
+    - Se probó la interfaz en QA y PROD y ahora apunta correctamente
 
 Resultado final:
-- Persistió el error del frontend llamando a localhost
-El backend se creó correctamente, la BD SQLite funciona, el deploy está bien armado, pero no fue posible resolver VITE_API_URL en el build final del frontend.
+- El problema quedó solucionado en ambos entornos. De esta manera, el frontend YA NO llama a localhost, y tanto QA como PROD funcionan correctamente.
 
 ## 7. Conclusión final
 
-- La infraestructura quedó funcionando completamente:
-    - CI/CD terminado
-    - Deploy automático de QA
-    - Deploy manual de PROD
-    - Backend operativo con SQLite
-    - BD persistente creada exitosamente
-    - Frontend correctamente desplegado
-El único punto pendiente es el uso de la variable VITE_API_URL que impide que el frontend QA/PROD consuma la API real en Render.
-
+- El proyecto quedó completamente funcional en QA y en PROD:
+    - CI/CD funcionando de punta a punta.
+    - Deploy automático a QA y manual a PROD.
+    - Backend operativo con SQLite y persistencia correcta.
+    - Frontend compilado y desplegado sin errores.
+    - El problema de VITE_API_URL fue solucionado y ahora el frontend consume correctamente la API real en ambos entornos.
