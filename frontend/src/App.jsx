@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:4000/api/books";
+// Base de URL: usa VITE_API_URL en QA/PROD y localhost en desarrollo local
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = `${API_BASE}/api/books`;
 
 function App() {
   const [books, setBooks] = useState([]);
@@ -36,24 +38,28 @@ function App() {
     const payload = {
       title: form.title,
       author: form.author,
-      year: Number(form.year)
+      year: Number(form.year),
     };
 
     try {
       if (form.id === null) {
+        // Crear libro
         const res = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
         });
+
         const newBook = await res.json();
         setBooks((prev) => [newBook, ...prev]);
       } else {
+        // Editar libro
         const res = await fetch(`${API_URL}/${form.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
         });
+
         const updated = await res.json();
         setBooks((prev) =>
           prev.map((b) => (b.id === updated.id ? updated : b))
@@ -71,12 +77,13 @@ function App() {
       id: book.id,
       title: book.title,
       author: book.author,
-      year: book.year.toString()
+      year: book.year.toString(),
     });
   };
 
   const handleDelete = async (id) => {
     if (!confirm("¿Eliminar este libro?")) return;
+
     try {
       await fetch(`${API_URL}/${id}`, { method: "DELETE" });
       setBooks((prev) => prev.filter((b) => b.id !== id));
@@ -96,69 +103,61 @@ function App() {
         margin: "0 auto",
         padding: "2rem",
         fontFamily:
-          "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+          "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
     >
       <h1 style={{ marginBottom: "1rem" }}>Gestor de Libros</h1>
 
+      {/* FORMULARIO */}
       <form
-  onSubmit={handleSubmit}
-  style={{
-    marginBottom: "2rem",
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr 120px",
-    gap: "0.75rem",
-    alignItems: "end"
-  }}
->
-  <div>
-    <label
-      htmlFor="title"
-      style={{ display: "block", marginBottom: "0.25rem" }}
-    >
-      Título
-    </label>
-    <input
-      id="title"
-      name="title"
-      value={form.title}
-      onChange={handleChange}
-      style={{ width: "100%", padding: "0.5rem" }}
-    />
-  </div>
+        onSubmit={handleSubmit}
+        style={{
+          marginBottom: "2rem",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 120px",
+          gap: "0.75rem",
+          alignItems: "end",
+        }}
+      >
+        <div>
+          <label htmlFor="title" style={{ display: "block", marginBottom: "0.25rem" }}>
+            Título
+          </label>
+          <input
+            id="title"
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </div>
 
-  <div>
-    <label
-      htmlFor="author"
-      style={{ display: "block", marginBottom: "0.25rem" }}
-    >
-      Autor
-    </label>
-    <input
-      id="author"
-      name="author"
-      value={form.author}
-      onChange={handleChange}
-      style={{ width: "100%", padding: "0.5rem" }}
-    />
-  </div>
+        <div>
+          <label htmlFor="author" style={{ display: "block", marginBottom: "0.25rem" }}>
+            Autor
+          </label>
+          <input
+            id="author"
+            name="author"
+            value={form.author}
+            onChange={handleChange}
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </div>
 
-  <div>
-    <label
-      htmlFor="year"
-      style={{ display: "block", marginBottom: "0.25rem" }}
-    >
-      Año
-    </label>
-    <input
-      id="year"
-      name="year"
-      type="number"
-      value={form.year}
-      onChange={handleChange}
-      style={{ width: "100%", padding: "0.5rem" }}
-    />
-  </div>
+        <div>
+          <label htmlFor="year" style={{ display: "block", marginBottom: "0.25rem" }}>
+            Año
+          </label>
+          <input
+            id="year"
+            name="year"
+            type="number"
+            value={form.year}
+            onChange={handleChange}
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </div>
 
         <div style={{ gridColumn: "1 / -1", display: "flex", gap: "0.5rem" }}>
           <button
@@ -168,11 +167,12 @@ function App() {
               border: "none",
               cursor: "pointer",
               backgroundColor: "#2563eb",
-              color: "white"
+              color: "white",
             }}
           >
             {form.id === null ? "Agregar libro" : "Guardar cambios"}
           </button>
+
           {form.id !== null && (
             <button
               type="button"
@@ -181,7 +181,7 @@ function App() {
                 padding: "0.5rem 1rem",
                 border: "1px solid #ccc",
                 cursor: "pointer",
-                backgroundColor: "white"
+                backgroundColor: "white",
               }}
             >
               Cancelar
@@ -190,11 +190,12 @@ function App() {
         </div>
       </form>
 
+      {/* TABLA */}
       <div
         style={{
           border: "1px solid #e5e7eb",
           borderRadius: "0.75rem",
-          overflow: "hidden"
+          overflow: "hidden",
         }}
       >
         <div
@@ -203,7 +204,7 @@ function App() {
             gridTemplateColumns: "60px 2fr 2fr 100px 160px",
             padding: "0.75rem",
             backgroundColor: "#f9fafb",
-            fontWeight: 600
+            fontWeight: 600,
           }}
         >
           <div>ID</div>
@@ -212,6 +213,7 @@ function App() {
           <div>Año</div>
           <div>Acciones</div>
         </div>
+
         {loading ? (
           <div style={{ padding: "0.75rem" }}>Cargando...</div>
         ) : books.length === 0 ? (
@@ -225,13 +227,14 @@ function App() {
                 gridTemplateColumns: "60px 2fr 2fr 100px 160px",
                 padding: "0.75rem",
                 borderTop: "1px solid #e5e7eb",
-                alignItems: "center"
+                alignItems: "center",
               }}
             >
               <div>{book.id}</div>
               <div>{book.title}</div>
               <div>{book.author}</div>
               <div>{book.year}</div>
+
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 <button
                   onClick={() => handleEdit(book)}
@@ -239,18 +242,19 @@ function App() {
                     padding: "0.25rem 0.75rem",
                     border: "1px solid #e5e7eb",
                     cursor: "pointer",
-                    backgroundColor: "white"
+                    backgroundColor: "white",
                   }}
                 >
                   Editar
                 </button>
+
                 <button
                   onClick={() => handleDelete(book.id)}
                   style={{
                     padding: "0.25rem 0.75rem",
                     border: "1px solid #fee2e2",
                     cursor: "pointer",
-                    backgroundColor: "#fee2e2"
+                    backgroundColor: "#fee2e2",
                   }}
                 >
                   Borrar
