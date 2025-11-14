@@ -1,0 +1,69 @@
+name: CI-CD Books App
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/books-api-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/books-api-frontend
+  VERSION: 1.0.${{ github.run_number }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      # ---------- BACKEND ----------
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:${{ env.VERSION }}
+            ${{ env.BACKEND_IMAGE }}:latest
+
+      # ---------- FRONTEND ----------
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:${{ env.VERSION }}
+            ${{ env.FRONTEND_IMAGE }}:latest
+
+  deploy-qa:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render QA backend deploy
+        run: curl -X POST "${{ secrets.RENDER_QA_BACKEND_HOOK }}"
+
+      - name: Trigger Render QA frontend deploy
+        run: curl -X POST "${{ secrets.RENDER_QA_FRONTEND_HOOK }}"
+
+  deploy-prod:
+    needs: deploy-qa
+    runs-on: ubuntu-latest
+    environment: production   # acá configurás aprobación manual
+    steps:
+      - name: Trigger Render PROD backend deploy
+        run: curl -X POST "${{ secrets.RENDER_PROD_BACKEND_HOOK }}"
+
+      - name: Trigger Render PROD frontend deploy
+        run: curl -X POST "${{ secrets.RENDER_PROD_FRONTEND_HOOK }}"
