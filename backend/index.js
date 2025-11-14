@@ -81,6 +81,11 @@ app.delete("/api/books/:id", async (req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("Backend funcionando - PROD");
+});
+
+
 // ----------- SERVIDOR -----------------
 
 if (require.main === module) {
