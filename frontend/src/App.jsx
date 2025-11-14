@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 
 // Base de URL: usa VITE_API_URL en QA/PROD y localhost en desarrollo local
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+// const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+// Detectar en qué entorno estamos según el dominio
+const API_BASE = window.location.hostname.includes("books-frontend-qa.onrender.com")
+  ? "https://books-backend-qa.onrender.com"
+  : window.location.hostname.includes("books-api-frontend-prod.onrender.com")
+  ? "https://books-api-backend-prod.onrender.com"
+  : "http://localhost:4000"; // fallback para desarrollo local
 
 const API_URL = `${API_BASE}/api/books`;
 
